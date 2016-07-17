@@ -70,8 +70,13 @@
 					$error['category_image'] = " <span class='label label-danger'>Image type must jpg, jpeg, gif, or png!</span>";
 				}
 			}
-				
-			if(!empty($category_name) && !empty($author) && empty($error['category_image'])){
+            //PDF
+            $menu_pdf = $_FILES['category_pdf']['name'];
+            $pdf_type = $_FILES['category_pdf']['type'];
+            $error_pdf = array();
+            $extension_pdf = end(explode(".", $_FILES["category_pdf"]["name"]));
+            //END PDF
+			if(!empty($category_name) && !empty($author)&& !empty($menu_pdf) && empty($error['category_image'])){
 					
 				if(!empty($menu_image)){
 					
@@ -79,14 +84,19 @@
 					$string = '0123456789';
 					$file = preg_replace("/\s+/", "_", $_FILES['category_image']['name']);
 					$function = new functions;
-					$category_image = $function->get_random_string($string, 4)."-".date("Y-m-d").".".$extension;
-				
+                    $string_name = $function->get_random_string($string, 6);
+					$category_image = $string_name."-".date("Y-m-d").".".$extension;
+                    $menu_pdf = $string_name."-".date("Y-m-d").".".$extension_pdf;
+
 					// delete previous image
 					$delete = unlink('upload/category/'."$previous_category_image");
-					
+                    $pieces = explode(".", $previous_category_image);
+                    $previous_category_pdf = $pieces[0]+".pdf";
+					$delete_pdf = unlink('upload/pdf/'."$previous_category_pdf");
+
 					// upload new image
 					$upload = move_uploaded_file($_FILES['category_image']['tmp_name'], 'upload/category/'.$category_image);
-	  
+                    move_uploaded_file($_FILES['category_pdf']['tmp_name'], 'upload/pdf/'.$menu_pdf);
 					$sql_query = "UPDATE tbl_news_category 
 							SET category_name = ?, author = ?, category_image = ?
 							WHERE cid = ?";
@@ -189,6 +199,10 @@
 			<br/>
 			<label>Image :</label><?php echo isset($error['category_image']) ? $error['category_image'] : '';?>
 			<input type="file" name="category_image" id="category_image" /><br />
+            <label> Cần update cả hình ảnh và pdf để data đồng bộ! Thanks</label><br />
+            <label>File PDF :</label><?php echo isset($error_pdf['category_pdf']) ? $error_pdf['category_pdf'] : '';?>
+            <input type="file" name="category_pdf"/>
+            <br/>
 			<img src="upload/category/<?php echo $data['category_image']; ?>" width="200" height="280"/>
 			<br/><br/>
 	</div>
